@@ -1102,7 +1102,26 @@ namespace steem { namespace plugins { namespace condenser_api {
             legacy_asset      steem_transferred;
             legacy_asset      vests_converted;
             legacy_asset      total_steem_from_vests;
-         };
+   };
+
+   struct legacy_witness_missed_block_operation
+   {
+      legacy_witness_missed_block_operation() {}
+      legacy_witness_missed_block_operation( const witness_missed_block_operation& op ) :
+         witness( op.witness ),
+         block_num( op.block_num ) {}
+
+      operator witness_missed_block_operation() const
+      {
+         witness_missed_block_operation op;
+         op.witness   = witness;
+         op.block_num = block_num;
+         return op;
+      }
+
+      account_name_type witness;
+      uint32_t          block_num;
+   };   
 
    typedef fc::static_variant<
             legacy_vote_operation,
@@ -1170,7 +1189,8 @@ namespace steem { namespace plugins { namespace condenser_api {
             legacy_clear_null_account_balance_operation,
             legacy_proposal_pay_operation,
             legacy_sps_fund_operation,
-            legacy_hardfork23_operation
+            legacy_hardfork23_operation,
+            legacy_witness_missed_block_operation
          > legacy_operation;
 
    struct legacy_operation_conversion_visitor
@@ -1423,6 +1443,12 @@ namespace steem { namespace plugins { namespace condenser_api {
          return true;
       }
 
+      bool operator()( const witness_missed_block_operation& op ) const
+      {
+         l_op = legacy_witness_missed_block_operation( op );
+         return true;
+      }      
+
       // Should only be SMT ops
       template< typename T >
       bool operator()( const T& )const { return false; }
@@ -1609,6 +1635,11 @@ struct convert_from_legacy_operation_visitor
       return operation( hardfork23_operation( op ) );
    }
 
+   operation operator()( const legacy_witness_missed_block_operation& op ) const
+   {
+      return operation( witness_missed_block_operation( op ) );
+   }   
+
    template< typename T >
    operation operator()( const T& t )const
    {
@@ -1735,5 +1766,6 @@ FC_REFLECT( steem::plugins::condenser_api::legacy_proposal_pay_operation, (recei
 FC_REFLECT( steem::plugins::condenser_api::legacy_sps_fund_operation, (additional_funds) )
 FC_REFLECT( steem::plugins::condenser_api::legacy_create_proposal_operation, (creator)(receiver)(start_date)(end_date)(daily_pay)(subject)(permlink) )
 FC_REFLECT( steem::plugins::condenser_api::legacy_hardfork23_operation, (account)(sbd_transferred)(steem_transferred)(vests_converted)(total_steem_from_vests) )
+FC_REFLECT( steem::plugins::condenser_api::legacy_witness_missed_block_operation, (witness)(block_num) )
 
 FC_REFLECT_TYPENAME( steem::plugins::condenser_api::legacy_operation )

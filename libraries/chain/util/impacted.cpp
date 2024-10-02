@@ -290,6 +290,11 @@ struct get_impacted_account_visitor
       _impacted.insert( op.account );
    }
 
+   void operator()( const witness_missed_block_operation& op )
+   {
+      _impacted.insert( op.witness );
+   }
+
    //void operator()( const operation& op ){}
 };
 
