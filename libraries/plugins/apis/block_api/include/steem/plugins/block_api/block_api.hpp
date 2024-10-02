@@ -6,7 +6,7 @@
 
 namespace steem { namespace plugins { namespace block_api {
 
-#define BLOCK_API_DEFAULT_QUERY_LIMIT 250
+#define BLOCK_API_DEFAULT_QUERY_LIMIT 100
 
 class block_api_impl;
 
