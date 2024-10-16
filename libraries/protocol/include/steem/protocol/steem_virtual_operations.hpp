@@ -255,8 +255,45 @@ namespace steem { namespace protocol {
          witness( witness ),
          block_num( block_num ) {}
 
-      account_name_type witness;
-      uint32_t          block_num;
+      account_name_type  witness;
+      uint32_t           block_num;
+   };
+
+   struct global_state_operation : public virtual_operation
+   {
+      global_state_operation() {}
+      global_state_operation( const dynamic_global_property_object& props, const feed_history_object& feed ) :
+         virtual_supply( props.virtual_supply ),
+         current_supply( props.current_supply ),
+         current_sbd_supply( props.current_sbd_supply ),
+         total_vesting_fund_steem( props.total_vesting_fund_steem ),
+         total_vesting_shares( props.total_vesting_shares ),
+         total_reward_fund_steem( props.total_reward_fund_steem ),
+         pending_rewarded_vesting_steem( props.pending_rewarded_vesting_steem ),
+         pending_rewarded_vesting_shares( props.pending_rewarded_vesting_shares ),
+         median_price( feed.current_median_history ),
+         vesting_share_price( props.get_vesting_share_price() ),
+         sbd_interest_rate( props.sbd_interest_rate ),
+         sbd_print_rate( props.sbd_print_rate ),
+         content_reward_percent( props.content_reward_percent ),
+         vesting_reward_percent( props.vesting_reward_percent ),
+         sps_fund_percent( props.sps_fund_percent ) {}
+
+      asset     virtual_supply;
+      asset     current_supply;
+      asset     current_sbd_supply;
+      asset     total_vesting_fund_steem;
+      asset     total_vesting_shares;
+      asset     total_reward_fund_steem;
+      asset     pending_rewarded_vesting_steem;
+      asset     pending_rewarded_vesting_shares;
+      price     median_price;
+      price     vesting_share_price;      
+      uint16_t  sbd_interest_rate;
+      uint16_t  sbd_print_rate;
+      uint16_t  content_reward_percent;
+      uint16_t  vesting_reward_percent;
+      uint16_t  sps_fund_percent;
    };
 
 } } //steem::protocol
@@ -280,3 +317,4 @@ FC_REFLECT( steem::protocol::clear_null_account_balance_operation, (total_cleare
 FC_REFLECT( steem::protocol::sps_fund_operation, (additional_funds) )
 FC_REFLECT( steem::protocol::hardfork23_operation, (account)(sbd_transferred)(steem_transferred)(vests_converted)(total_steem_from_vests) )
 FC_REFLECT( steem::protocol::witness_missed_block_operation, (witness)(block_num) )
+FC_REFLECT( steem::protocol::global_state_operation, (virtual_supply)(current_supply)(current_sbd_supply)(total_vesting_fund_steem)(total_vesting_shares)(total_reward_fund_steem)(pending_rewarded_vesting_steem)(pending_rewarded_vesting_shares)(median_price)(vesting_share_price)(sbd_interest_rate)(sbd_print_rate)(content_reward_percent)(vesting_reward_percent)(sps_fund_percent) )

@@ -2384,8 +2384,12 @@ void database::process_comment_cashout()
 void database::process_funds()
 {
    const auto& props = get_dynamic_global_properties();
-   const auto& wso = get_witness_schedule_object();
-   const auto& feed = get_feed_history();
+   const auto& wso   = get_witness_schedule_object();
+   const auto& feed  = get_feed_history();
+
+#ifndef IS_LOW_MEM
+   push_virtual_operation( global_state_operation( props, feed ) );
+#endif
 
    if( has_hardfork( STEEM_HARDFORK_0_16__551) )
    {
@@ -4180,7 +4184,10 @@ void database::update_global_dynamic_data( const signed_block& b )
             modify( witness_missed, [&]( witness_object& w )
             {
                w.total_missed++;
+
+#ifndef IS_LOW_MEM
                push_virtual_operation( witness_missed_block_operation( w.owner, b.block_num() ) );
+#endif
 
 FC_TODO( "#ifndef not needed after HF 20 is live" );
 #ifndef IS_TEST_NET

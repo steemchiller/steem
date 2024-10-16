@@ -103,7 +103,8 @@ namespace steem { namespace protocol {
             proposal_pay_operation,
             sps_fund_operation,
             hardfork23_operation,
-            witness_missed_block_operation
+            witness_missed_block_operation,
+            global_state_operation
          > operation;
 
    /*void operation_get_required_authorities( const operation& op,
