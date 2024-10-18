@@ -2,6 +2,8 @@
 
 namespace mira {
 
+using ::rocksdb::InfoLogLevel;
+
 // Base configuration for an index
 #define BASE                             "base"
 
@@ -218,7 +220,7 @@ bool configuration::gather_statistics( const boost::any& cfg )
 
 ::rocksdb::Options configuration::get_options( const boost::any& cfg, std::string type_name )
 {
-   ::rocksdb::Options opts;
+   ::rocksdb::Options options;
 
    auto c = boost::any_cast< fc::variant >( cfg );
    FC_ASSERT( c.is_object(), "Expected database configuration to be an object" );
@@ -292,7 +294,7 @@ bool configuration::gather_statistics( const boost::any& cfg )
    }
 
    // We assign the global write buffer manager to all databases
-   opts.write_buffer_manager = global_write_buffer_manager;
+   options.write_buffer_manager = global_write_buffer_manager;
 
    fc::variant_object config = retrieve_active_configuration( obj, type_name );
 
@@ -301,7 +303,7 @@ bool configuration::gather_statistics( const boost::any& cfg )
       try
       {
          if ( global_database_option_map.find( it->key() ) != global_database_option_map.end() )
-            global_database_option_map[ it->key() ]( opts, it->value() );
+            global_database_option_map[ it->key() ]( options, it->value() );
          else
             wlog( "Encountered an unknown database configuration option: ${key}", ("key",it->key()) );
       }
@@ -312,7 +314,13 @@ bool configuration::gather_statistics( const boost::any& cfg )
       }
    }
 
-   return opts;
+   // Set log level and improve log file recycling
+   options.info_log_level       = InfoLogLevel::WARN_LEVEL;
+   options.max_log_file_size    = 16 >> 20;
+   options.keep_log_file_num    = 1;
+   options.recycle_log_file_num = 1;
+
+   return options;
 }
 
 } // mira

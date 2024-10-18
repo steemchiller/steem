@@ -76,6 +76,7 @@ using ::rocksdb::DBOptions;
 using ::rocksdb::Options;
 using ::rocksdb::PinnableSlice;
 using ::rocksdb::ReadOptions;
+using ::rocksdb::InfoLogLevel;
 using ::rocksdb::Slice;
 using ::rocksdb::Comparator;
 using ::rocksdb::ColumnFamilyDescriptor;
@@ -440,6 +441,13 @@ public:
       DB* storageDb = nullptr;
       auto strPath = _storagePath.string();
       Options options;
+
+      // Set log level and improve log file recycling
+      options.info_log_level       = InfoLogLevel::WARN_LEVEL;
+      options.max_log_file_size    = 16 >> 20;
+      options.keep_log_file_num    = 1;
+      options.recycle_log_file_num = 1;
+
       /// Optimize RocksDB. This is the easiest way to get RocksDB to perform well
       options.IncreaseParallelism();
       options.OptimizeLevelStyleCompaction();
