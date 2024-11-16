@@ -262,22 +262,24 @@ namespace steem { namespace protocol {
    struct global_state_operation : public virtual_operation
    {
       global_state_operation() {}
-      global_state_operation( const dynamic_global_property_object& props, const feed_history_object& feed ) :
-         virtual_supply( props.virtual_supply ),
-         current_supply( props.current_supply ),
-         current_sbd_supply( props.current_sbd_supply ),
-         total_vesting_fund_steem( props.total_vesting_fund_steem ),
-         total_vesting_shares( props.total_vesting_shares ),
-         total_reward_fund_steem( props.total_reward_fund_steem ),
-         pending_rewarded_vesting_steem( props.pending_rewarded_vesting_steem ),
-         pending_rewarded_vesting_shares( props.pending_rewarded_vesting_shares ),
-         median_price( feed.current_median_history ),
-         vesting_share_price( props.get_vesting_share_price() ),
-         sbd_interest_rate( props.sbd_interest_rate ),
-         sbd_print_rate( props.sbd_print_rate ),
-         content_reward_percent( props.content_reward_percent ),
-         vesting_reward_percent( props.vesting_reward_percent ),
-         sps_fund_percent( props.sps_fund_percent ) {}
+      global_state_operation( const asset&   vs   , const asset&   cs   , const asset&   css, const asset& tvfs, const asset&   tvs, const asset&   trfs,
+                              const asset&   prvst, const asset&   prvs , const price&   mp , const price& vsp , const uint16_t sir, const uint16_t spr,
+                              const uint16_t crp  , const uint16_t vrp  , const uint16_t sfp ) :
+         virtual_supply( vs ),
+         current_supply( cs ),
+         current_sbd_supply( css ),
+         total_vesting_fund_steem( tvfs ),
+         total_vesting_shares( tvs ),
+         total_reward_fund_steem( trfs ),
+         pending_rewarded_vesting_steem( prvst ),
+         pending_rewarded_vesting_shares( prvs ),
+         median_price( mp ),
+         vesting_share_price( vsp ),
+         sbd_interest_rate( sir ),
+         sbd_print_rate( spr ),
+         content_reward_percent( crp ),
+         vesting_reward_percent( vrp ),
+         sps_fund_percent( sfp ) {}
 
       asset     virtual_supply;
       asset     current_supply;
