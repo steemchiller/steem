@@ -589,9 +589,7 @@ private:
 
       uint64_t encoded_id = (uint64_t) obj.id;
       if( obj.virtual_op > 0 )
-      {
          encoded_id |= VIRTUAL_OP_FLAG;
-      }
 
       op_by_block_num_slice_t blockLocSlice( block_op_id_pair( obj.block, encoded_id ) );
       s = _writeBuffer.Put( _columnHandles[OPERATION_BY_BLOCK], blockLocSlice, idSlice );
