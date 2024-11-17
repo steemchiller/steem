@@ -1606,6 +1606,7 @@ void account_history_rocksdb_plugin::plugin_initialize( const boost::program_opt
       auto actualPath = basePath / dbPath;
       dbPath = actualPath;
    }
+   bfs::create_directories( dbPath );
 
    _my = std::make_unique< impl >( *this, options, dbPath );
    _my->openDb();
