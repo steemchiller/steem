@@ -492,10 +492,18 @@ public:
             update_lib( 0 );
          }
 
-         _on_post_apply_operation_con = _mainDb.add_post_apply_operation_handler(
+         _on_post_apply_operation_conn = _mainDb.add_post_apply_operation_handler(
             [&]( const operation_notification& note )
             {
                on_post_apply_operation( note );
+            },
+            rocksdb_plugin
+         );
+
+         _on_post_apply_block_conn = _mainDb.add_post_apply_block_handler(
+            [&]( const block_notification& note )
+            {
+               on_post_apply_block( note );
             },
             rocksdb_plugin
          );
@@ -536,7 +544,8 @@ public:
 
    void shutdownDb()
    {
-      chain::util::disconnect_signal( _on_post_apply_operation_con );
+      chain::util::disconnect_signal( _on_post_apply_operation_conn );
+      chain::util::disconnect_signal( _on_post_apply_block_conn );      
       chain::util::disconnect_signal( _on_irreversible_block_conn );
       flushStorage();
       cleanupColumnHandles();
@@ -703,7 +712,7 @@ private:
    }
 
    void on_post_apply_operation( const operation_notification& opNote );
-
+   void on_post_apply_block( const block_notification& note );
    void on_irreversible_block( uint32_t block_num );
 
    void collectOptions( const bpo::variables_map& options );
@@ -739,7 +748,8 @@ private:
    std::vector< ColumnFamilyHandle* > _columnHandles;
    CachableWriteBatch                 _writeBuffer;
 
-   boost::signals2::connection        _on_post_apply_operation_con;
+   boost::signals2::connection        _on_post_apply_operation_conn;
+   boost::signals2::connection        _on_post_apply_block_conn;
    boost::signals2::connection        _on_irreversible_block_conn;
 
    /// Helper member to be able to detect another incomming tx and increment tx-counter.
@@ -1448,9 +1458,6 @@ void account_history_rocksdb_plugin::impl::importData( unsigned int blockLimit )
 
 void account_history_rocksdb_plugin::impl::on_post_apply_operation( const operation_notification& n )
 {
-   if( n.block % 1000000 == 0 && n.trx_in_block == 0 && n.op_in_trx == 0 && n.virtual_op == 0 )
-      printReport( n.block, "RocksDB AH import -" );
-
    if( ( !_include_transactions && n.virtual_op == 0 ) || !isTrackedOperation( n.op ) )
    {
       ++_excludedOps;
@@ -1502,6 +1509,12 @@ void account_history_rocksdb_plugin::impl::on_post_apply_operation( const operat
          o.impacted.insert( o.impacted.end(), impacted.begin(), impacted.end() );
       });
    }
+}
+
+void account_history_rocksdb_plugin::impl::on_post_apply_block( const block_notification& note )
+{
+   if( note.block_num % 1000000 == 0 )
+      printReport( note.block_num, "RocksDB AH import -" );
 }
 
 void account_history_rocksdb_plugin::impl::on_irreversible_block( uint32_t block_num )
