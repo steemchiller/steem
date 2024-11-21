@@ -1308,5 +1308,4 @@ namespace chainbase {
          boost::any                                                  _database_cfg = nullptr;
    };
 
-}  // namepsace chainbase
-
+}  // namespace chainbase

@@ -1362,17 +1362,6 @@ void account_history_rocksdb_plugin::impl::printReport( uint32_t blockNo, const 
              << "Containing " << _txNo << " transactions and " << _totalOps << " operations.\n"
              << _excludedOps << " operations and " << _excludedAccountCount << " accounts have been filtered out due to configured options.\n"
              << "---\n";
-
-   //ilog("${t}Processed blocks: ${n}, containing: ${tx} transactions and ${op} operations.\n"
-   //     "${ep} operations have been filtered out due to configured options.\n"
-   //     "${ea} accounts have been filtered out due to configured options.",
-   //   ("t", detailText)
-   //   ("n", blockNo)
-   //   ("tx", _txNo)
-   //   ("op", _totalOps)
-   //   ("ep", _excludedOps)
-   //   ("ea", _excludedAccountCount)
-   //   );
 }
 
 void account_history_rocksdb_plugin::impl::importData( unsigned int blockLimit )
@@ -1556,33 +1545,27 @@ void account_history_rocksdb_plugin::set_program_options(
          "account-history-rocksdb-path",
          bpo::value< bfs::path >()->default_value( "blockchain/rocksdb/rocksdb_account_history" ),
          "The location of the rocksdb database for account history. By default it is $DATA_DIR/blockchain/rocksdb/rocksdb_account_history"
-      )
-      (
+      )(
          "account-history-rocksdb-track-account-range",
          boost::program_options::value< std::vector< std::string > >()->composing()->multitoken(),
          "Defines a range of accounts to track as a json pair [\"from\",\"to\"] [from,to] Can be specified multiple times."
-      )
-      (
+      )(
          "account-history-rocksdb-whitelist-ops",
          boost::program_options::value< std::vector< std::string > >()->composing(),
          "Defines a list of operations which will be explicitly logged."
-      )
-      (
+      )(
          "account-history-rocksdb-blacklist-ops",
          boost::program_options::value< std::vector< std::string > >()->composing(),
          "Defines a list of operations which will be explicitly ignored."
-      )
-      (
+      )(
          "account-history-rocksdb-include-history",
          bpo::bool_switch()->default_value( true ),
          "Defines if the history records for impacted accounts should be stored in the database."
-      )
-      (
+      )(
          "account-history-rocksdb-include-transactions",
          bpo::bool_switch()->default_value( true ),
          "Defines if also operations from transactions (not only virtual ops) should be stored in the database."
-      )
-      (
+      )(
          "account-history-rocksdb-flush-interval",
          bpo::value< uint64_t >()->default_value( DEFAULT_FLUSH_INTERVAL_REPLAY ),
          "Defines the write buffer flush interval for replay (number of cached ops per flush)."
@@ -1593,8 +1576,7 @@ void account_history_rocksdb_plugin::set_program_options(
          "account-history-rocksdb-immediate-import",
          bpo::bool_switch()->default_value( false ),
          "Allows to force immediate data import at plugin startup. By default storage is supplied during reindex process."
-      )
-      (
+      )(
          "account-history-rocksdb-stop-import-at-block",
          bpo::value< uint32_t >()->default_value( 0 ),
          "Allows to specify block number, the data import process should stop at."
@@ -1603,17 +1585,11 @@ void account_history_rocksdb_plugin::set_program_options(
 
 void account_history_rocksdb_plugin::plugin_initialize( const boost::program_options::variables_map& options )
 {
-   if( options.count( "account-history-rocksdb-stop-import-at-block" ) )
-      _blockLimit = options.at( "account-history-rocksdb-stop-import-at-block" ).as< uint32_t >();
-
+   _blockLimit        = options.at( "account-history-rocksdb-stop-import-at-block" ).as< uint32_t >();
    _doImmediateImport = options.at( "account-history-rocksdb-immediate-import" ).as< bool >();
-
-   bfs::path dbPath;
-
-   if( options.count( "account-history-rocksdb-path" ) )
-      dbPath = options.at( "account-history-rocksdb-path" ).as< bfs::path >();
-
-   if( dbPath.is_absolute() == false )
+   
+   bfs::path dbPath = options.at( "account-history-rocksdb-path" ).as< bfs::path >();
+   if( dbPath.is_relative() )
    {
       auto basePath = appbase::app().data_dir();
       auto actualPath = basePath / dbPath;
