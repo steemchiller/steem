@@ -333,7 +333,7 @@ void chain_plugin::set_program_options( options_description& cli, options_descri
          "Maximum numbers of proposals/votes which can be removed in the same cycle"
       )(
          "shared-file-dir",
-         bpo::value< bfs::path >()->default_value( "blockchain" ),
+         bpo::value< bfs::path >()->default_value( "blockchain/db" ),
          "The location of the chain shared memory files (absolute path or relative to application data dir)"
       )(
          "shared-file-size",

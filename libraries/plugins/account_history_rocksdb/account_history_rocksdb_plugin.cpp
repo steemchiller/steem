@@ -1543,8 +1543,8 @@ void account_history_rocksdb_plugin::set_program_options(
    cfg.add_options()
       (
          "account-history-rocksdb-path",
-         bpo::value< bfs::path >()->default_value( "blockchain/rocksdb/rocksdb_account_history" ),
-         "The location of the rocksdb database for account history. By default it is $DATA_DIR/blockchain/rocksdb/rocksdb_account_history"
+         bpo::value< bfs::path >()->default_value( "blockchain/db/rocksdb_account_history" ),
+         "The location of the rocksdb database for account history. By default it is $DATA_DIR/blockchain/db/rocksdb/rocksdb_account_history"
       )(
          "account-history-rocksdb-track-account-range",
          boost::program_options::value< std::vector< std::string > >()->composing()->multitoken(),
