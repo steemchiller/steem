@@ -3425,11 +3425,6 @@ void database::_apply_block( const signed_block& next_block )
    clear_expired_orders();
    clear_expired_delegations();
 
-   if( next_block.block_num() % 100000 == 0 )
-   {
-
-   }
-
    update_witness_schedule(*this);
 
    update_median_feed();
