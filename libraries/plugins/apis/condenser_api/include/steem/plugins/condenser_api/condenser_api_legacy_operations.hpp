@@ -1131,9 +1131,6 @@ namespace steem { namespace plugins { namespace condenser_api {
          current_sbd_supply( legacy_asset::from_asset( op.current_sbd_supply ) ),
          total_vesting_fund_steem( legacy_asset::from_asset( op.total_vesting_fund_steem ) ),
          total_vesting_shares( legacy_asset::from_asset( op.total_vesting_shares ) ),
-         total_reward_fund_steem( legacy_asset::from_asset( op.total_reward_fund_steem ) ),
-         pending_rewarded_vesting_steem( legacy_asset::from_asset( op.pending_rewarded_vesting_steem ) ),
-         pending_rewarded_vesting_shares( legacy_asset::from_asset( op.pending_rewarded_vesting_shares ) ),
          median_price( legacy_price( op.median_price ) ),
          vesting_share_price( legacy_price( op.vesting_share_price ) ),
          sbd_interest_rate( op.sbd_interest_rate ),
@@ -1145,21 +1142,18 @@ namespace steem { namespace plugins { namespace condenser_api {
       operator global_state_operation() const
       {
          global_state_operation op;
-         op.virtual_supply                  = virtual_supply;
-         op.current_supply                  = current_supply;
-         op.current_sbd_supply              = current_sbd_supply;
-         op.total_vesting_fund_steem        = total_vesting_fund_steem;
-         op.total_vesting_shares            = total_vesting_shares;
-         op.total_reward_fund_steem         = total_reward_fund_steem;
-         op.pending_rewarded_vesting_steem  = pending_rewarded_vesting_steem;
-         op.pending_rewarded_vesting_shares = pending_rewarded_vesting_shares;
-         op.median_price                    = median_price;
-         op.vesting_share_price             = vesting_share_price;
-         op.sbd_interest_rate               = sbd_interest_rate;
-         op.sbd_print_rate                  = sbd_print_rate;
-         op.content_reward_percent          = content_reward_percent;
-         op.vesting_reward_percent          = vesting_reward_percent;
-         op.sps_fund_percent                = sps_fund_percent;
+         op.virtual_supply           = virtual_supply;
+         op.current_supply           = current_supply;
+         op.current_sbd_supply       = current_sbd_supply;
+         op.total_vesting_fund_steem = total_vesting_fund_steem;
+         op.total_vesting_shares     = total_vesting_shares;
+         op.median_price             = median_price;
+         op.vesting_share_price      = vesting_share_price;
+         op.sbd_interest_rate        = sbd_interest_rate;
+         op.sbd_print_rate           = sbd_print_rate;
+         op.content_reward_percent   = content_reward_percent;
+         op.vesting_reward_percent   = vesting_reward_percent;
+         op.sps_fund_percent         = sps_fund_percent;
          return op;
       }
 
@@ -1168,9 +1162,6 @@ namespace steem { namespace plugins { namespace condenser_api {
       legacy_asset  current_sbd_supply;
       legacy_asset  total_vesting_fund_steem;
       legacy_asset  total_vesting_shares;
-      legacy_asset  total_reward_fund_steem;
-      legacy_asset  pending_rewarded_vesting_steem;
-      legacy_asset  pending_rewarded_vesting_shares;
       legacy_price  median_price;
       legacy_price  vesting_share_price;
       uint16_t      sbd_interest_rate;
@@ -1836,6 +1827,6 @@ FC_REFLECT( steem::plugins::condenser_api::legacy_sps_fund_operation, (additiona
 FC_REFLECT( steem::plugins::condenser_api::legacy_create_proposal_operation, (creator)(receiver)(start_date)(end_date)(daily_pay)(subject)(permlink) )
 FC_REFLECT( steem::plugins::condenser_api::legacy_hardfork23_operation, (account)(sbd_transferred)(steem_transferred)(vests_converted)(total_steem_from_vests) )
 FC_REFLECT( steem::plugins::condenser_api::legacy_witness_missed_block_operation, (witness)(block_num) )
-FC_REFLECT( steem::plugins::condenser_api::legacy_global_state_operation, (virtual_supply)(current_supply)(current_sbd_supply)(total_vesting_fund_steem)(total_vesting_shares)(total_reward_fund_steem)(pending_rewarded_vesting_steem)(pending_rewarded_vesting_shares)(median_price)(vesting_share_price)(sbd_interest_rate)(sbd_print_rate)(content_reward_percent)(vesting_reward_percent)(sps_fund_percent) )
+FC_REFLECT( steem::plugins::condenser_api::legacy_global_state_operation, (virtual_supply)(current_supply)(current_sbd_supply)(total_vesting_fund_steem)(total_vesting_shares)(median_price)(vesting_share_price)(sbd_interest_rate)(sbd_print_rate)(content_reward_percent)(vesting_reward_percent)(sps_fund_percent) )
 
 FC_REFLECT_TYPENAME( steem::plugins::condenser_api::legacy_operation )

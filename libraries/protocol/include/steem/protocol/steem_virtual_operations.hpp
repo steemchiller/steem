@@ -262,17 +262,14 @@ namespace steem { namespace protocol {
    struct global_state_operation : public virtual_operation
    {
       global_state_operation() {}
-      global_state_operation( const asset&   vs   , const asset&   cs   , const asset&   css, const asset& tvfs, const asset&   tvs, const asset&   trfs,
-                              const asset&   prvst, const asset&   prvs , const price&   mp , const price& vsp , const uint16_t sir, const uint16_t spr,
-                              const uint16_t crp  , const uint16_t vrp  , const uint16_t sfp ) :
+      global_state_operation( const asset&   vs , const asset&   cs , const asset&   css, const asset& tvfs , const asset&   tvs, 
+                              const price&   mp , const price&   vsp, const uint16_t sir, const uint16_t spr, const uint16_t crp,
+                              const uint16_t vrp, const uint16_t sfp ) :
          virtual_supply( vs ),
          current_supply( cs ),
          current_sbd_supply( css ),
          total_vesting_fund_steem( tvfs ),
          total_vesting_shares( tvs ),
-         total_reward_fund_steem( trfs ),
-         pending_rewarded_vesting_steem( prvst ),
-         pending_rewarded_vesting_shares( prvs ),
          median_price( mp ),
          vesting_share_price( vsp ),
          sbd_interest_rate( sir ),
@@ -286,9 +283,6 @@ namespace steem { namespace protocol {
       asset     current_sbd_supply;
       asset     total_vesting_fund_steem;
       asset     total_vesting_shares;
-      asset     total_reward_fund_steem;
-      asset     pending_rewarded_vesting_steem;
-      asset     pending_rewarded_vesting_shares;
       price     median_price;
       price     vesting_share_price;      
       uint16_t  sbd_interest_rate;
@@ -319,4 +313,4 @@ FC_REFLECT( steem::protocol::clear_null_account_balance_operation, (total_cleare
 FC_REFLECT( steem::protocol::sps_fund_operation, (additional_funds) )
 FC_REFLECT( steem::protocol::hardfork23_operation, (account)(sbd_transferred)(steem_transferred)(vests_converted)(total_steem_from_vests) )
 FC_REFLECT( steem::protocol::witness_missed_block_operation, (witness)(block_num) )
-FC_REFLECT( steem::protocol::global_state_operation, (virtual_supply)(current_supply)(current_sbd_supply)(total_vesting_fund_steem)(total_vesting_shares)(total_reward_fund_steem)(pending_rewarded_vesting_steem)(pending_rewarded_vesting_shares)(median_price)(vesting_share_price)(sbd_interest_rate)(sbd_print_rate)(content_reward_percent)(vesting_reward_percent)(sps_fund_percent) )
+FC_REFLECT( steem::protocol::global_state_operation, (virtual_supply)(current_supply)(current_sbd_supply)(total_vesting_fund_steem)(total_vesting_shares)(median_price)(vesting_share_price)(sbd_interest_rate)(sbd_print_rate)(content_reward_percent)(vesting_reward_percent)(sps_fund_percent) )

@@ -1515,12 +1515,14 @@ void database::clear_null_account_balance()
 
    operation vop_op = clear_null_account_balance_operation();
    clear_null_account_balance_operation& vop = vop_op.get< clear_null_account_balance_operation >();
+   
    if( total_steem.amount.value > 0 )
       vop.total_cleared.push_back( total_steem );
    if( total_vests.amount.value > 0 )
       vop.total_cleared.push_back( total_vests );
    if( total_sbd.amount.value > 0 )
       vop.total_cleared.push_back( total_sbd );
+   
    pre_push_virtual_operation( vop_op );
 
    /////////////////////////////////////////////////////////////////////////////////////
@@ -2389,10 +2391,9 @@ void database::process_funds()
 
 #ifndef IS_LOW_MEM
    push_virtual_operation( global_state_operation(
-      props.virtual_supply        , props.current_supply           , props.current_sbd_supply            , props.total_vesting_fund_steem,
-      props.total_vesting_shares  , props.total_reward_fund_steem  , props.pending_rewarded_vesting_steem, props.pending_rewarded_vesting_shares,
-      feed.current_median_history , props.get_vesting_share_price(), props.sbd_interest_rate             , props.sbd_print_rate,
-      props.content_reward_percent, props.vesting_reward_percent   , props.sps_fund_percent ) );
+      props.virtual_supply      , props.current_supply        , props.current_sbd_supply       , props.total_vesting_fund_steem,
+      props.total_vesting_shares, feed.current_median_history , props.get_vesting_share_price(), props.sbd_interest_rate,
+      props.sbd_print_rate      , props.content_reward_percent, props.vesting_reward_percent   , props.sps_fund_percent ) );
 #endif
 
    if( has_hardfork( STEEM_HARDFORK_0_16__551) )
