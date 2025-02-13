@@ -161,10 +161,16 @@ namespace chainbase {
    void database::trim_cache()
    {
 #ifdef ENABLE_MIRA
-      if( _index_list.size() )
-      {
-         (*_index_list.begin())->trim_cache();
-      }
+      // We need to run trim_cache for each index, else it won't trim correctly when using in-memory indices
+      for( const auto& i : _index_list )
+         i->trim_cache();
+
+      // TODO: should this run for all in-memory indices and only once for the rest?
+
+      //if( _index_list.size() )
+      //{
+      //   (*_index_list.begin())->trim_cache();
+      //}
 #endif
    }
 

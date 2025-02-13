@@ -288,7 +288,9 @@ uint32_t database::reindex( const open_args& args )
             {
                std::cerr << "   " << double( cur_block_num ) * 100  / last_block_num << "%   " << cur_block_num << " of " << last_block_num << "   (" <<
 #ifdef ENABLE_MIRA
-               get_cache_size()  << " objects cached using " << (get_cache_usage() >> 20) << "M"
+               // Running get_cache_usage takes up to a few seconds depending on the cache size for each call, so will we better get rid of it
+               get_cache_size() << " objects cached"
+               //get_cache_size()  << " objects cached using " << (get_cache_usage() >> 20) << "M"
 #else
                (get_free_memory() >> 20) << "M free"
 #endif
@@ -299,6 +301,7 @@ uint32_t database::reindex( const open_args& args )
             }
             apply_block( itr.first, skip_flags );
 
+            /*
             if( cur_block_num % 100000 == 0 )
             {
                //std::cout << rocksdb::get_perf_context()->ToString() << std::endl;
@@ -306,7 +309,7 @@ uint32_t database::reindex( const open_args& args )
                {
                   dump_lb_call_counts();
                }
-            }
+            }*/
 
             if( (args.benchmark.first > 0) && (cur_block_num % args.benchmark.first == 0) )
                args.benchmark.second( cur_block_num, get_abstract_index_cntr() );
