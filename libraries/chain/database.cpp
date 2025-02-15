@@ -49,6 +49,10 @@
 #include <fstream>
 #include <functional>
 
+#define CONSOLE_BOLD_GREEN  "\033[1;32m"
+#define CONSOLE_RESET       "\033[0m"
+#define CONSOLE_RULER       "─────────────────────────────────────────────────────────────────────────────────────────────────────────"
+
 namespace steem { namespace chain {
 
 struct object_schema_repr
@@ -221,6 +225,36 @@ void reindex_set_index_helper( database& db, mira::index_type type, const boost:
 }
 #endif
 
+void database::print_reindex_status( fc::time_point_sec start_time, uint32_t cur_block, uint32_t last_block )
+{
+   //std::cout << rocksdb::get_perf_context()->ToString() << std::endl;
+   //dump_lb_call_counts();
+
+   double elapsed( (fc::time_point::now() - start_time).count() / 1000000.0 );
+   bool is_summary = ( cur_block % 1000000 == 0 );
+
+   if ( is_summary )
+      std::cout << CONSOLE_BOLD_GREEN << CONSOLE_RULER << std::endl;
+
+   std::cout   << std::fixed
+      << " "   << std::setprecision( 1 ) << ( cur_block * 100.0 / last_block ) << " %"
+      << " | "                           << cur_block << " / " << last_block
+      << " | " << std::setprecision( 3 ) << ( elapsed * 1000.0 / cur_block ) << " ms/block"
+#ifdef ENABLE_MIRA
+      << " | " << get_cache_size() << " objects cached"
+#else
+      << " | using " << ( get_cache_usage() >> 20 ) << " M"
+#endif      
+      << " | " << std::setprecision( 1 ) << elapsed << "s" << std::endl
+               << std::setprecision( std::cout.precision() );
+
+   if ( is_summary )
+      std::cout << CONSOLE_RULER << CONSOLE_RESET << std::endl;
+
+   //rocksdb::SetPerfLevel(rocksdb::kEnableCount);
+   //rocksdb::get_perf_context()->Reset();      
+}
+
 uint32_t database::reindex( const open_args& args )
 {
    reindex_notification note( args );
@@ -251,11 +285,10 @@ uint32_t database::reindex( const open_args& args )
 #endif
 
       _fork_db.reset();    // override effect of _fork_db.start_block() call in open()
-
-      auto start = fc::time_point::now();
       STEEM_ASSERT( _block_log.head(), block_log_exception, "No blocks in block log. Cannot reindex an empty chain." );
 
       ilog( "Replaying blocks..." );
+      auto start_time = fc::time_point::now();
 
       uint64_t skip_flags =
          skip_witness_signature |
@@ -274,45 +307,24 @@ uint32_t database::reindex( const open_args& args )
          _block_log.set_locking( false );
          auto itr = _block_log.read_block( 0 );
          auto last_block_num = _block_log.head()->block_num();
+
          if( args.stop_replay_at > 0 && args.stop_replay_at < last_block_num )
             last_block_num = args.stop_replay_at;
+
          if( args.benchmark.first > 0 )
-         {
             args.benchmark.second( 0, get_abstract_index_cntr() );
-         }
 
          while( itr.first.block_num() != last_block_num )
          {
             auto cur_block_num = itr.first.block_num();
-            if( cur_block_num % 100000 == 0 )
-            {
-               std::cerr << "   " << double( cur_block_num ) * 100  / last_block_num << "%   " << cur_block_num << " of " << last_block_num << "   (" <<
-#ifdef ENABLE_MIRA
-               // Running get_cache_usage takes up to a few seconds depending on the cache size for each call, so will we better get rid of it
-               get_cache_size() << " objects cached"
-               //get_cache_size()  << " objects cached using " << (get_cache_usage() >> 20) << "M"
-#else
-               (get_free_memory() >> 20) << "M free"
-#endif
-               << ")\n";
-
-               //rocksdb::SetPerfLevel(rocksdb::kEnableCount);
-               //rocksdb::get_perf_context()->Reset();
-            }
-            apply_block( itr.first, skip_flags );
-
-            /*
-            if( cur_block_num % 100000 == 0 )
-            {
-               //std::cout << rocksdb::get_perf_context()->ToString() << std::endl;
-               if( cur_block_num % 1000000 == 0 )
-               {
-                  dump_lb_call_counts();
-               }
-            }*/
+            apply_block( itr.first, skip_flags, cur_block_num % _replay_trim_cache_interval == 0 );
 
             if( (args.benchmark.first > 0) && (cur_block_num % args.benchmark.first == 0) )
                args.benchmark.second( cur_block_num, get_abstract_index_cntr() );
+
+            if( cur_block_num % 100000 == 0 )
+               print_reindex_status( start_time, cur_block_num, last_block_num );
+
             itr = _block_log.read_block( itr.second );
          }
 
@@ -321,6 +333,7 @@ uint32_t database::reindex( const open_args& args )
 
          if( (args.benchmark.first > 0) && (note.last_block_number % args.benchmark.first == 0) )
             args.benchmark.second( note.last_block_number, get_abstract_index_cntr() );
+
          set_revision( head_block_num() );
          _block_log.set_locking( true );
 
@@ -338,15 +351,14 @@ uint32_t database::reindex( const open_args& args )
       }
 #endif
 
-      auto end = fc::time_point::now();
-      ilog( "Done reindexing, elapsed time: ${t} sec", ("t",double((end-start).count())/1000000.0 ) );
+      ilog( "Done reindexing, elapsed time: ${t} sec",
+         ("t", double((fc::time_point::now()-start_time).count()) / 1000000.0) );
 
       note.reindex_success = true;
 
       return note.last_block_number;
    }
    FC_CAPTURE_AND_RETHROW( (args.data_dir)(args.shared_mem_dir) )
-
 }
 
 void database::wipe( const fc::path& data_dir, const fc::path& shared_mem_dir, bool include_blocks)
@@ -3192,21 +3204,26 @@ void database::notify_changed_objects()
 
 }
 
-void database::set_flush_interval( uint32_t flush_blocks )
+void database::set_flush_interval( uint32_t interval_blocks )
 {
-   _flush_blocks = flush_blocks;
+   _flush_interval = interval_blocks;
    _next_flush_block = 0;
+}
+
+void database::set_trim_cache_interval( uint32_t interval_blocks )
+{
+   _replay_trim_cache_interval = interval_blocks;
 }
 
 //////////////////// private methods ////////////////////
 
-void database::apply_block( const signed_block& next_block, uint32_t skip )
+void database::apply_block( const signed_block& next_block, uint32_t skip, bool call_trim_cache )
 { try {
    //fc::time_point begin_time = fc::time_point::now();
 
    detail::with_skip_flags( *this, skip, [&]()
    {
-      _apply_block( next_block );
+      _apply_block( next_block, call_trim_cache );
    } );
 
    /*try
@@ -3221,12 +3238,12 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
 
    //fc::time_point end_time = fc::time_point::now();
    //fc::microseconds dt = end_time - begin_time;
-   if( _flush_blocks != 0 )
+   if( _flush_interval != 0 )
    {
       if( _next_flush_block == 0 )
       {
-         uint32_t lep = block_num + 1 + _flush_blocks * 9 / 10;
-         uint32_t rep = block_num + 1 + _flush_blocks;
+         uint32_t lep = block_num + 1 + _flush_interval * 9 / 10;
+         uint32_t rep = block_num + 1 + _flush_interval;
 
          // use time_point::now() as RNG source to pick block randomly between lep and rep
          uint32_t span = rep - lep;
@@ -3291,7 +3308,7 @@ void database::check_free_memory( bool force_print, uint32_t current_block_num )
 #endif
 }
 
-void database::_apply_block( const signed_block& next_block )
+void database::_apply_block( const signed_block& next_block, bool call_trim_cache )
 { try {
    block_notification note( next_block );
 
@@ -3467,7 +3484,9 @@ void database::_apply_block( const signed_block& next_block )
    // last call of applying a block because it is the only thing that is not
    // reversible.
    migrate_irreversible_state();
-   trim_cache();
+   
+   if ( call_trim_cache )
+      trim_cache();
 
 } FC_CAPTURE_LOG_AND_RETHROW( (next_block.block_num()) ) }
 
@@ -5318,7 +5337,9 @@ void database::set_hardfork( uint32_t hardfork, bool apply_now )
 void database::apply_hardfork( uint32_t hardfork )
 {
    if( _log_hardforks )
-      elog( "HARDFORK ${hf} at block ${b}", ("hf", hardfork)("b", head_block_num()) );
+      std::cout << CONSOLE_BOLD_GREEN << "\nHARDFORK " << hardfork << " at block " << head_block_num() << "\n"
+                << CONSOLE_RESET      << "\n";
+
    operation hardfork_vop = hardfork_operation( hardfork );
 
    pre_push_virtual_operation( hardfork_vop );

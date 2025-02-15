@@ -87,6 +87,7 @@ class chain_plugin_impl
       uint32_t                         stop_replay_at = 0;
       uint32_t                         benchmark_interval = 0;
       uint32_t                         flush_interval = 0;
+      uint32_t                         trim_cache_interval;
       bool                             replay_in_memory = false;
       std::vector< std::string >       replay_memory_indices{};
       flat_map<uint32_t,block_id_type> loaded_checkpoints;
@@ -355,6 +356,10 @@ void chain_plugin::set_program_options( options_description& cli, options_descri
          "flush-state-interval",
          bpo::value< uint32_t >()->default_value( 10000 ),
          "Flush shared memory changes to disk every N blocks"
+      )(
+         "replay-trim-cache-interval",
+         bpo::value< uint32_t >()->default_value( 100000 ),
+         "Trim cache every N blocks during replay"
       )
 #ifdef ENABLE_MIRA
       (
@@ -442,6 +447,8 @@ void chain_plugin::plugin_initialize( const variables_map& options )
 
    my->benchmark_interval   = options.at( "set-benchmark-interval" ).as< uint32_t >();
    my->flush_interval       = options.at( "flush-state-interval" ).as< uint32_t >();
+   my->trim_cache_interval  = options.at( "replay-trim-cache-interval" ).as< uint32_t >();
+
    my->stop_replay_at       = options.at( "stop-replay-at-block" ).as< uint32_t >();
    my->sps_remove_threshold = options.at( "sps-remove-threshold" ).as< uint16_t >();   
 
@@ -524,6 +531,7 @@ void chain_plugin::plugin_startup()
    }
 
    my->db.set_flush_interval( my->flush_interval );
+   my->db.set_trim_cache_interval( my->trim_cache_interval );
    my->db.add_checkpoints( my->loaded_checkpoints );
    my->db.set_require_locking( my->check_locks );
 

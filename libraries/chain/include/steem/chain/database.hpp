@@ -490,7 +490,8 @@ namespace steem { namespace chain {
 
          const std::string& get_json_schema() const;
 
-         void set_flush_interval( uint32_t flush_blocks );
+         void set_flush_interval( uint32_t interval_blocks );
+         void set_trim_cache_interval( uint32_t interval_blocks );
          void check_free_memory( bool force_print, uint32_t current_block_num );
 
          void apply_transaction( const signed_transaction& trx, uint32_t skip = skip_nothing );
@@ -531,8 +532,8 @@ namespace steem { namespace chain {
       private:
          optional< chainbase::database::session > _pending_tx_session;
 
-         void apply_block( const signed_block& next_block, uint32_t skip = skip_nothing );
-         void _apply_block( const signed_block& next_block );
+         void apply_block( const signed_block& next_block, uint32_t skip = skip_nothing, bool call_trim_cache = true );
+         void _apply_block( const signed_block& next_block, bool call_trim_cache );
          void _apply_transaction( const signed_transaction& trx );
          void apply_operation( const operation& op );
 
@@ -583,6 +584,8 @@ namespace steem { namespace chain {
             note.op_in_trx    = _current_op_in_trx;
             return note;
          }
+
+         void print_reindex_status( fc::time_point_sec start_time, uint32_t cur_block_num, uint32_t last_block_num );
 
       public:
 
@@ -640,14 +643,14 @@ namespace steem { namespace chain {
 
          node_property_object              _node_property_object;
 
-         uint32_t                      _flush_blocks = 0;
-         uint32_t                      _next_flush_block = 0;
-
+         uint32_t                      _flush_interval       = 0;
+         uint32_t                      _next_flush_block     = 0;
          uint32_t                      _last_free_gb_printed = 0;
 
+         uint32_t                      _replay_trim_cache_interval = 100000;
          uint16_t                      _shared_file_full_threshold = 0;
-         uint16_t                      _shared_file_scale_rate = 0;
-         int16_t                       _sps_remove_threshold = -1;
+         uint16_t                      _shared_file_scale_rate     = 0;
+         int16_t                       _sps_remove_threshold       = -1;
 
          flat_map< custom_id_type, std::shared_ptr< custom_operation_interpreter > >   _custom_operation_interpreters;
          std::string                   _json_schema;
