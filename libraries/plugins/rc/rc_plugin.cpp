@@ -75,7 +75,8 @@ class rc_plugin_impl
 
       rc_plugin_skip_flags          _skip;
       std::map< account_name_type, int64_t > _account_to_max_rc;
-      uint32_t                      _enable_at_block = 1;
+      uint32_t                      _enable_at_block = 1;      
+      bool                          _replay_logs = false;
 
 #ifdef IS_TEST_NET
       std::set< account_name_type > _whitelist;
@@ -232,7 +233,8 @@ void use_account_rcs(
    const dynamic_global_property_object& gpo,
    const account_name_type& account_name,
    int64_t rc,
-   rc_plugin_skip_flags skip
+   rc_plugin_skip_flags skip,
+   bool replay_logs
 #ifdef IS_TEST_NET
    ,
    set< account_name_type > whitelist
@@ -282,19 +284,16 @@ void use_account_rcs(
                ("rc_current", rca.rc_manabar.current_mana)
                );
          }
-         else
+         else if ( replay_logs && !has_mana )
          {
-            if( !has_mana )
-            {
-               const dynamic_global_property_object& gpo = db.get_dynamic_global_properties();
-               ilog( "Accepting transaction by ${account}, has ${rc_current} RC, needs ${rc_needed} RC, block ${b}, witness ${w}.",
-                  ("account", account_name)
-                  ("rc_needed", rc)
-                  ("rc_current", rca.rc_manabar.current_mana)
-                  ("b", gpo.head_block_number)
-                  ("w", gpo.current_witness)
-                  );
-            }
+            const dynamic_global_property_object& gpo = db.get_dynamic_global_properties();
+            ilog( "Accepting transaction by ${account}, has ${rc_current} RC, needs ${rc_needed} RC, block ${b}, witness ${w}.",
+               ("account", account_name)
+               ("rc_needed", rc)
+               ("rc_current", rca.rc_manabar.current_mana)
+               ("b", gpo.head_block_number)
+               ("w", gpo.current_witness)
+               );
          }
       }
 
@@ -346,7 +345,7 @@ void rc_plugin_impl::on_post_apply_transaction( const transaction_notification& 
    }
 
    tx_info.resource_user = get_resource_user( note.transaction );
-   use_account_rcs( _db, gpo, tx_info.resource_user, total_cost, _skip
+   use_account_rcs( _db, gpo, tx_info.resource_user, total_cost, _skip, _replay_logs
 #ifdef IS_TEST_NET
    ,
    _whitelist
@@ -1093,7 +1092,7 @@ void rc_plugin_impl::on_post_apply_optional_action( const optional_action_notifi
    }
 
    opt_action_info.resource_user = get_resource_user( note.action );
-   use_account_rcs( _db, gpo, opt_action_info.resource_user, total_cost, _skip
+   use_account_rcs( _db, gpo, opt_action_info.resource_user, total_cost, _skip, _replay_logs
 #ifdef IS_TEST_NET
    ,
    _whitelist
@@ -1134,19 +1133,51 @@ rc_plugin::~rc_plugin() {}
 void rc_plugin::set_program_options( options_description& cli, options_description& cfg )
 {
    cfg.add_options()
-      ("rc-skip-reject-not-enough-rc", bpo::value<bool>()->default_value( false ), "Skip rejecting transactions when account has insufficient RCs. This is not recommended." )
-      ("rc-compute-historical-rc", bpo::value<bool>()->default_value( false ), "Generate historical resource credits" )
+      (
+         "rc-skip-reject-not-enough-rc",
+         bpo::value<bool>()->default_value( false ),
+         "Skip rejecting transactions when account has insufficient RCs. This is not recommended."
+      )(
+         "rc-compute-historical-rc",
+         bpo::value<bool>()->default_value( false ),
+         "Generate historical resource credits"
+      )(
+         "rc-replay-with-transaction-logs",
+         bpo::value<bool>()->default_value( false ),
+         "Show detailed transaction logs during replay"
+      )
 #ifdef IS_TEST_NET
-      ("rc-start-at-block", bpo::value<uint32_t>()->default_value(0), "Start calculating RCs at a specific block" )
-      ("rc-account-whitelist", bpo::value< vector<string> >()->composing(), "Ignore RC calculations for the whitelist" )
+      (
+         "rc-start-at-block",
+         bpo::value<uint32_t>()->default_value(0),
+         "Start calculating RCs at a specific block"
+      )(
+         "rc-account-whitelist",
+         bpo::value< vector<string> >()->composing(),
+         "Ignore RC calculations for the whitelist"
+      )
 #endif
       ;
    cli.add_options()
-      ("rc-skip-reject-not-enough-rc", bpo::bool_switch()->default_value( false ), "Skip rejecting transactions when account has insufficient RCs. This is not recommended." )
-      ("rc-compute-historical-rc", bpo::bool_switch()->default_value( false ), "Generate historical resource credits" )
+      (
+         "rc-skip-reject-not-enough-rc",
+         bpo::bool_switch()->default_value( false ),
+         "Skip rejecting transactions when account has insufficient RCs. This is not recommended."
+      )(
+         "rc-compute-historical-rc",
+         bpo::bool_switch()->default_value( false ),
+         "Generate historical resource credits"
+      )
 #ifdef IS_TEST_NET
-      ("rc-start-at-block", bpo::value<uint32_t>()->default_value(0), "Start calculating RCs at a specific block" )
-      ("rc-account-whitelist", bpo::value< vector<string> >()->composing(), "Ignore RC calculations for the whitelist" )
+      (
+         "rc-start-at-block",
+         bpo::value<uint32_t>()->default_value(0),
+         "Start calculating RCs at a specific block"
+      )(
+         "rc-account-whitelist",
+         bpo::value< vector<string> >()->composing(),
+         "Ignore RC calculations for the whitelist"
+      )
 #endif
       ;
 }
@@ -1191,6 +1222,8 @@ void rc_plugin::plugin_initialize( const boost::program_options::variables_map& 
       fc::mutable_variant_object state_opts;
 
       my->_skip.skip_reject_not_enough_rc = options.at( "rc-skip-reject-not-enough-rc" ).as< bool >();
+      my->_replay_logs = options.at( "rc-replay-with-transaction-logs" ).as< bool >();
+
       state_opts["rc-compute-historical-rc"] = options.at( "rc-compute-historical-rc" ).as<bool>();
 #ifndef IS_TEST_NET
       if( !options.at( "rc-compute-historical-rc" ).as<bool>() )
