@@ -2404,12 +2404,14 @@ void database::process_funds()
    const auto& wso   = get_witness_schedule_object();
    const auto& feed  = get_feed_history();
 
+/*
 #ifndef IS_LOW_MEM
    push_virtual_operation( global_state_operation(
       props.virtual_supply      , props.current_supply        , props.current_sbd_supply       , props.total_vesting_fund_steem,
       props.total_vesting_shares, feed.current_median_history , props.get_vesting_share_price(), props.sbd_interest_rate,
       props.sbd_print_rate      , props.content_reward_percent, props.vesting_reward_percent   , props.sps_fund_percent ) );
 #endif
+*/
 
    if( has_hardfork( STEEM_HARDFORK_0_16__551) )
    {
@@ -4207,9 +4209,10 @@ void database::update_global_dynamic_data( const signed_block& b )
             {
                w.total_missed++;
 
+/*
 #ifndef IS_LOW_MEM
                push_virtual_operation( witness_missed_block_operation( w.owner, b.block_num() ) );
-#endif
+#endif*/
 
 FC_TODO( "#ifndef not needed after HF 20 is live" );
 #ifndef IS_TEST_NET

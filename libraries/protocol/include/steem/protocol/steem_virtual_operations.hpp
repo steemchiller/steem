@@ -248,7 +248,7 @@ namespace steem { namespace protocol {
       asset             total_steem_from_vests; // Resulting STEEM from conversion
    };
 
-   struct witness_missed_block_operation : public virtual_operation
+   /*struct witness_missed_block_operation : public virtual_operation
    {
       witness_missed_block_operation() {}
       witness_missed_block_operation( const account_name_type& witness, const uint32_t block_num ) :
@@ -290,7 +290,7 @@ namespace steem { namespace protocol {
       uint16_t  content_reward_percent;
       uint16_t  vesting_reward_percent;
       uint16_t  sps_fund_percent;
-   };
+   };*/
 
 } } //steem::protocol
 
@@ -312,5 +312,5 @@ FC_REFLECT( steem::protocol::producer_reward_operation, (producer)(vesting_share
 FC_REFLECT( steem::protocol::clear_null_account_balance_operation, (total_cleared) )
 FC_REFLECT( steem::protocol::sps_fund_operation, (additional_funds) )
 FC_REFLECT( steem::protocol::hardfork23_operation, (account)(sbd_transferred)(steem_transferred)(vests_converted)(total_steem_from_vests) )
-FC_REFLECT( steem::protocol::witness_missed_block_operation, (witness)(block_num) )
-FC_REFLECT( steem::protocol::global_state_operation, (virtual_supply)(current_supply)(current_sbd_supply)(total_vesting_fund_steem)(total_vesting_shares)(median_price)(vesting_share_price)(sbd_interest_rate)(sbd_print_rate)(content_reward_percent)(vesting_reward_percent)(sps_fund_percent) )
+/*FC_REFLECT( steem::protocol::witness_missed_block_operation, (witness)(block_num) )
+FC_REFLECT( steem::protocol::global_state_operation, (virtual_supply)(current_supply)(current_sbd_supply)(total_vesting_fund_steem)(total_vesting_shares)(median_price)(vesting_share_price)(sbd_interest_rate)(sbd_print_rate)(content_reward_percent)(vesting_reward_percent)(sps_fund_percent) )*/

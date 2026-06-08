@@ -395,8 +395,8 @@ struct count_operation_visitor
    void operator()( const proposal_pay_operation& ) const {}
    void operator()( const sps_fund_operation& ) const {}
    void operator()( const hardfork23_operation& ) const {}
-   void operator()( const witness_missed_block_operation& ) const {}
-   void operator()( const global_state_operation& ) const {}
+   /*void operator()( const witness_missed_block_operation& ) const {}
+   void operator()( const global_state_operation& ) const {}*/
 
    // Optional Actions
 #ifdef IS_TEST_NET

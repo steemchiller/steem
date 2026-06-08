@@ -1103,6 +1103,7 @@ namespace steem { namespace plugins { namespace condenser_api {
       legacy_asset      total_steem_from_vests;
    };
 
+   /*
    struct legacy_witness_missed_block_operation
    {
       legacy_witness_missed_block_operation() {}
@@ -1170,6 +1171,7 @@ namespace steem { namespace plugins { namespace condenser_api {
       uint16_t      vesting_reward_percent;
       uint16_t      sps_fund_percent;
    };
+   */
 
    typedef fc::static_variant<
             legacy_vote_operation,
@@ -1237,9 +1239,9 @@ namespace steem { namespace plugins { namespace condenser_api {
             legacy_clear_null_account_balance_operation,
             legacy_proposal_pay_operation,
             legacy_sps_fund_operation,
-            legacy_hardfork23_operation,
+            legacy_hardfork23_operation/*,
             legacy_witness_missed_block_operation,
-            legacy_global_state_operation
+            legacy_global_state_operation*/
          > legacy_operation;
 
    struct legacy_operation_conversion_visitor
@@ -1492,6 +1494,7 @@ namespace steem { namespace plugins { namespace condenser_api {
          return true;
       }
 
+      /*      
       bool operator()( const witness_missed_block_operation& op ) const
       {
          l_op = legacy_witness_missed_block_operation( op );
@@ -1502,7 +1505,7 @@ namespace steem { namespace plugins { namespace condenser_api {
       {
          l_op = legacy_global_state_operation( op );
          return true;
-      }
+      }*/
 
       // Should only be SMT ops
       template< typename T >
@@ -1690,6 +1693,7 @@ struct convert_from_legacy_operation_visitor
       return operation( hardfork23_operation( op ) );
    }
 
+   /*
    operation operator()( const legacy_witness_missed_block_operation& op ) const
    {
       return operation( witness_missed_block_operation( op ) );
@@ -1698,7 +1702,7 @@ struct convert_from_legacy_operation_visitor
    operation operator()( const legacy_global_state_operation& op ) const
    {
       return operation( global_state_operation( op ) );
-   }
+   }*/
 
    template< typename T >
    operation operator()( const T& t )const
@@ -1826,7 +1830,7 @@ FC_REFLECT( steem::plugins::condenser_api::legacy_proposal_pay_operation, (recei
 FC_REFLECT( steem::plugins::condenser_api::legacy_sps_fund_operation, (additional_funds) )
 FC_REFLECT( steem::plugins::condenser_api::legacy_create_proposal_operation, (creator)(receiver)(start_date)(end_date)(daily_pay)(subject)(permlink) )
 FC_REFLECT( steem::plugins::condenser_api::legacy_hardfork23_operation, (account)(sbd_transferred)(steem_transferred)(vests_converted)(total_steem_from_vests) )
-FC_REFLECT( steem::plugins::condenser_api::legacy_witness_missed_block_operation, (witness)(block_num) )
-FC_REFLECT( steem::plugins::condenser_api::legacy_global_state_operation, (virtual_supply)(current_supply)(current_sbd_supply)(total_vesting_fund_steem)(total_vesting_shares)(median_price)(vesting_share_price)(sbd_interest_rate)(sbd_print_rate)(content_reward_percent)(vesting_reward_percent)(sps_fund_percent) )
+/*FC_REFLECT( steem::plugins::condenser_api::legacy_witness_missed_block_operation, (witness)(block_num) )
+FC_REFLECT( steem::plugins::condenser_api::legacy_global_state_operation, (virtual_supply)(current_supply)(current_sbd_supply)(total_vesting_fund_steem)(total_vesting_shares)(median_price)(vesting_share_price)(sbd_interest_rate)(sbd_print_rate)(content_reward_percent)(vesting_reward_percent)(sps_fund_percent) )*/
 
 FC_REFLECT_TYPENAME( steem::plugins::condenser_api::legacy_operation )
